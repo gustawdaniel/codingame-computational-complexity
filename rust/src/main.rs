@@ -8,8 +8,8 @@ mod tests {
     #[test]
     fn sum_test() {
         assert_eq!(sum(
-            &vec![Point { n: 0u32, y: 1u32 }, Point { n: 1u32, y: 2u32 }],
-            |p: &Point| { f64::from(p.y) },
+            &vec![Point { n: 0u32, t: 1u32 }, Point { n: 1u32, t: 2u32 }],
+            |p: &Point| { f64::from(p.t) },
         ), 3f64);
     }
 
@@ -1581,7 +1581,7 @@ mod tests {
 #[derive(Debug)]
 struct Point {
     n: u32,
-    y: u32,
+    t: u32,
 }
 
 struct Model {
@@ -1595,22 +1595,18 @@ struct EvaluatedMode {
 }
 
 fn sum(series: &Vec<Point>, expression: impl Fn(&Point) -> f64) -> f64 {
-    let mut res = 0f64;
-    for point in series {
-        res += expression(point)
-    }
-    res
+    series.into_iter().fold(0f64, |acc, point| { acc + expression(point) })
 }
 
 fn evaluate_r2(model: Model, series: &Vec<Point>) -> EvaluatedMode {
     let Model { name, fn_log } = model;
     let c = 1.0 / series.len() as f64 * sum(
         &series,
-        |p| { f64::ln(f64::from(p.y)) - fn_log(p.n) },
+        |p| { f64::ln(f64::from(p.t)) - fn_log(p.n) },
     );
     let r2_log = sum(
         &series,
-        |p| f64::powi(f64::ln(f64::from(p.y)) - fn_log(p.n) - c, 2),
+        |p| f64::powi(f64::ln(f64::from(p.t)) - fn_log(p.n) - c, 2),
     );
     EvaluatedMode {
         name,
@@ -1669,7 +1665,7 @@ fn read_series(input: String) -> Vec<Point> {
             if let Some((n, y)) = line.split_once(' ') {
                 res.push(Point {
                     n: n.parse::<u32>().unwrap_or(0),
-                    y: y.parse::<u32>().unwrap_or(0),
+                    t: y.parse::<u32>().unwrap_or(0),
                 });
             }
         }
