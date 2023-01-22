@@ -13,23 +13,6 @@ export interface EvaluatedModel {
     r2log: number
 }
 
-export const models: Model[] = [
-    {name: 'O(1)', fnLog: () => 0},
-    {name: 'O(log n)', fnLog: (n) => Math.log(Math.log(n))},
-    {name: 'O(n)', fnLog: (n) => Math.log(n)},
-    {name: 'O(n log n)', fnLog: (n) => Math.log(n) + Math.log(Math.log(n))},
-    {name: 'O(n^2)', fnLog: (n) => 2 * Math.log(n)},
-    {name: 'O(n^2 log n)', fnLog: (n) => 2 * Math.log(n) + Math.log(Math.log(n))},
-    {name: 'O(n^3)', fnLog: (n) => 3 * Math.log(n)},
-    {name: 'O(2^n)', fnLog: (n) => n * Math.log(2)}
-];
-
-export function getModelByName(name: string): Model {
-    const res = models.find((m) => m.name === name);
-    if (!res) throw new Error(`No model with name ${name}`);
-    return res;
-}
-
 export function sum(series: Point[], expression: (p: Point) => number): number {
     let res = 0
     for (let p of series) {
@@ -46,6 +29,17 @@ export function evaluateR2({fnLog, name}: Model, series: Point[]): EvaluatedMode
 
 // O(1), O(log n), O(n), O(n log n), O(n^2), O(n^2 log n), O(n^3), O(2^n)
 export function selectModel(series: Point[]): string {
+    const models: Model[] = [
+        {name: 'O(1)', fnLog: () => 0},
+        {name: 'O(log n)', fnLog: (n) => Math.log(Math.log(n))},
+        {name: 'O(n)', fnLog: (n) => Math.log(n)},
+        {name: 'O(n log n)', fnLog: (n) => Math.log(n) + Math.log(Math.log(n))},
+        {name: 'O(n^2)', fnLog: (n) => 2 * Math.log(n)},
+        {name: 'O(n^2 log n)', fnLog: (n) => 2 * Math.log(n) + Math.log(Math.log(n))},
+        {name: 'O(n^3)', fnLog: (n) => 3 * Math.log(n)},
+        {name: 'O(2^n)', fnLog: (n) => n * Math.log(2)}
+    ];
+
     return models.map(model => evaluateR2(model, series))
         .reduce((p, n) => p.r2log < n.r2log ? p : n).name;
 }
