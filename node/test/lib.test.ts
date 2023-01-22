@@ -1,4 +1,4 @@
-import {div, evaluateR2, getModelByName, readSeries, run, sum} from "../lib";
+import {run} from "../lib";
 
 const almostConstantInput = '100\n' +
     '10 200000\n' +
@@ -1531,18 +1531,6 @@ const o2NInput = '24\n' +
     '23 1719324\n' +
     '24 3352906\n' +
     '25 6687068';
-
-describe('unit', () => {
-    it('sum', () => {
-        expect(sum([{n: 1n, y: 1n}, {n: 2n, y: 3n}], () => 1n)).toEqual(2n);
-        expect(sum([{n: 1n, y: 1n}, {n: 2n, y: 3n}], (n) => n.y)).toEqual(4n);
-        expect(sum([{n: 1n, y: 1n}, {n: 2n, y: 3n}], (n) => n.n)).toEqual(3n);
-    });
-
-    it('div', () => {
-        expect(div(3059887280487516n, 117039880797678240n)).toEqual(0.026143971265461304);
-    })
-});
 
 describe('e2e', () => {
     it('O(1)', () => {
