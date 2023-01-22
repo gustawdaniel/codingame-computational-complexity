@@ -5,12 +5,13 @@ export interface Point {
 
 export interface Model {
     name: string,
-    fn: (n: bigint) => bigint
+    fn: (n: bigint) => bigint,
+    fnLog: (n: bigint) => number
 }
 
 export interface EvaluatedModel {
     name: string,
-    r2: bigint
+    r2log: number
 }
 
 // https://stackoverflow.com/a/72404120/6398044
@@ -28,28 +29,37 @@ export function pow(base: bigint, exponent: bigint): bigint {
 }
 
 export const models: Model[] = [{
-    name: 'O(1)', fn: () => 1n
+    name: 'O(1)',
+    fn: () => 1n,
+    fnLog: () => 0
 }, {
     name: 'O(log n)',
     fn: (n) => log(n),
+    fnLog: (n) => Math.log(Math.log(Number(n)))
 }, {
     name: 'O(n)',
-    fn: (n) => n
+    fn: (n) => n,
+    fnLog: (n) => Math.log(Number(n))
 }, {
     name: 'O(n log n)',
-    fn: (n) => log(n) * n
+    fn: (n) => log(n) * n,
+    fnLog: (n) => Math.log(Number(n)) + Math.log(Math.log(Number(n)))
 }, {
     name: 'O(n^2)',
-    fn: (n) => pow(n, 2n)
+    fn: (n) => pow(n, 2n),
+    fnLog: (n) => 2 * Math.log(Number(n))
 }, {
     name: 'O(n^2 log n)',
-    fn: (n) => pow(n, 2n) * log(n)
+    fn: (n) => pow(n, 2n) * log(n),
+    fnLog: (n) => 2 * Math.log(Number(n)) + Math.log(Math.log(Number(n)))
 }, {
     name: 'O(n^3)',
-    fn: (n) => pow(n, 3n)
+    fn: (n) => pow(n, 3n),
+    fnLog: (n) => 3 * Math.log(Number(n))
 }, {
     name: 'O(2^n)',
-    fn: (n) => pow(2n, n)
+    fn: (n) => pow(2n, n),
+    fnLog: (n) => Number(n) * Math.log(2)
 }];
 
 export function getModelByName(name: string): Model {
@@ -58,10 +68,18 @@ export function getModelByName(name: string): Model {
     return res;
 }
 
-export function sum(series: Point[], expression: (p: Point) => bigint): bigint {
-    let res = 0n;
+export function sum(series: Point[], expression: (p: Point) => bigint): bigint;
+export function sum(series: Point[], expression: (p: Point) => number): number;
+export function sum(series: Point[], expression: (p: Point) => number | bigint): number | bigint {
+    if (series.length === 0) return 0;
+    let res = typeof expression(series[0]) === 'number' ? 0 : 0n;
     for (let p of series) {
-        res += expression(p)
+        const exp = expression(p);
+        if (typeof exp === "number" && typeof res === "number") {
+            res += exp
+        } else if (typeof exp === "bigint" && typeof res === "bigint") {
+            res += exp
+        }
     }
     return res;
 }
@@ -94,21 +112,18 @@ export function multiply(a: number, b: bigint): bigint {
     return BigInt(Math.round(a * Number(b)));
 }
 
-export function evaluateR2({fn, name}: Model, series: Point[]): EvaluatedModel {
-    const fn2 = evaluateFn2({fn}, series);
-    const yfn = evaluateYfn({fn}, series);
-    // sum ( [ y - [ sum (y f(n) ) / sum ( f(n)^2) ] f(n) ] ^2 )
-    const a: number = div(yfn, fn2);
+export function evaluateR2({fn, fnLog, name}: Model, series: Point[]): EvaluatedModel {
+    const c = 1 / series.length * sum(series, (p) => Math.log(Number(p.y)) - fnLog(p.n));
+    const r2log = sum(series, (p) => Math.pow(Math.log(Number(p.y)) - fnLog(p.n) - c, 2));
 
-    const r2 = sum(series, (p) => abs(p.y - multiply(a, fn(p.n))));
-
-    return {name, r2}
+    return {name, r2log}
 }
 
 // O(1), O(log n), O(n), O(n log n), O(n^2), O(n^2 log n), O(n^3), O(2^n)
 export function selectModel(series: Point[]): string {
     return models.map(model => evaluateR2(model, series))
-        .reduce((p, n) => p.r2 < n.r2 ? p : n).name;
+        // .reduce((p, n) => p.r2 < n.r2 ? p : n).name;
+        .reduce((p, n) => p.r2log < n.r2log ? p : n).name;
 }
 
 export function readSeries(input: string): Point[] {

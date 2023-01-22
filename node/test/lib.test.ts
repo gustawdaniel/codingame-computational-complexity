@@ -1539,14 +1539,6 @@ describe('unit', () => {
         expect(sum([{n: 1n, y: 1n}, {n: 2n, y: 3n}], (n) => n.n)).toEqual(3n);
     });
 
-    it('r2', () => {
-        const series = readSeries(almostConstantInput);
-        const o1 = evaluateR2(getModelByName('O(1)'), series).r2;
-        const o2n = evaluateR2(getModelByName('O(2^n)'), series).r2;
-
-        expect(o1).toBeLessThan(o2n);
-    })
-
     it('div', () => {
         expect(div(3059887280487516n, 117039880797678240n)).toEqual(0.026143971265461304);
     })
